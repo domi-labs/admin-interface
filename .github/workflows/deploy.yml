@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
         source: "./admin-interface.tar"
-        target: "/root/"
+        target: "~/admin-interface.tar"
 
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
@@ -37,13 +37,12 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
         script: |
-          cd ~ && rm -rf admin-interface.tar
           # Stop and remove any existing container
           docker stop admin-interface || true
           docker rm admin-interface || true
           # Remove any existing image
           docker rmi admin-interface || true
           # Load the Docker image from the tar file
-          docker load -i ~/admin-interface.tar
+          docker load -i ~/admin-interface.tar/admin-interface.tar
           # Run the new container
           docker run -d --name admin-interface -p 80:80 admin-interface
