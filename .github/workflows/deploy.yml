@@ -17,7 +17,9 @@ jobs:
       run: |
         docker build -t admin-interface .
         docker save admin-interface -o ./admin-interface.tar
-
+        ls -la
+        chmod 644 ./admin-interface.tar
+        ls -la
 
     - name: Copy to server
       uses: appleboy/scp-action@master
