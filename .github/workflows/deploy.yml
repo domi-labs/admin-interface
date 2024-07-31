@@ -13,6 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Build Docker Image
+      run: |
+        docker build -t admin-interface .
+        docker save admin-interface -o /tmp/admin-interface.tar
+
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
       with:
@@ -26,7 +31,9 @@ jobs:
           docker rm admin-interface || true
           # Remove any existing image
           docker rmi admin-interface || true
-          # Build the Docker image on the server
-          docker build -t admin-interface .
+          # Transfer the Docker image tar file to the remote server
+          mv /tmp/admin-interface.tar .
+          # Load the Docker image from the tar file
+          docker load -i admin-interface.tar
           # Run the new container
           docker run -d --name admin-interface -p 80:80 admin-interface
