@@ -3,7 +3,7 @@ name: Deploy Vue App
 on:
   push:
     branches:
-      - main  # 主分支名可能因仓库而异
+      - main
 
 jobs:
   build-and-deploy:
@@ -16,36 +16,34 @@ jobs:
     - name: Build Docker Image
       run: |
         docker build -t admin-interface .
-        docker save admin-interface -o .
-        ls -la
+        docker save admin-interface -o ./admin-interface.tar
         chmod 644 ./admin-interface.tar
-        ls -la
 
-    # - name: Copy to server
-    #   uses: appleboy/scp-action@master
-    #   with:
-    #     host: ${{ secrets.SERVER_HOST }}
-    #     username: ${{ secrets.SERVER_USERNAME }}
-    #     password: ${{ secrets.SERVER_PASSWORD }}
-    #     port: ${{ secrets.SERVER_PORT }}
-    #     source: "./admin-interface.tar/"
-    #     target: "/root/admin-interface.tar"
+    - name: Copy image
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        port: ${{ secrets.SERVER_PORT }}
+        source: "./admin-interface.tar/"
+        target: "./~"
 
-    # - name: Deploy to Server
-    #   uses: appleboy/ssh-action@master
-    #   with:
-    #     host: ${{ secrets.SERVER_HOST }}
-    #     username: ${{ secrets.SERVER_USERNAME }}
-    #     password: ${{ secrets.SERVER_PASSWORD }}
-    #     port: ${{ secrets.SERVER_PORT }}
-    #     script: |
-    #       cd ~/admin-interface.tar
-    #       # Stop and remove any existing container
-    #       docker stop admin-interface || true
-    #       docker rm admin-interface || true
-    #       # Remove any existing image
-    #       docker rmi admin-interface || true
-    #       # Load the Docker image from the tar file
-    #       docker load -i /tmp/admin-interface.tar
-    #       # Run the new container
-    #       docker run -d --name admin-interface -p 80:80 admin-interface
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        port: ${{ secrets.SERVER_PORT }}
+        script: |
+          cd ~ && rm -rf admin-interface.tar
+          # Stop and remove any existing container
+          docker stop admin-interface || true
+          docker rm admin-interface || true
+          # Remove any existing image
+          docker rmi admin-interface || true
+          # Load the Docker image from the tar file
+          docker load -i ~/admin-interface.tar
+          # Run the new container
+          docker run -d --name admin-interface -p 80:80 admin-interface
