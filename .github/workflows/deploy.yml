@@ -18,8 +18,8 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
+        ls -la
         echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        cd app
         docker build -t admin-interface .
         docker push admin-interface
 
