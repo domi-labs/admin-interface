@@ -45,7 +45,7 @@ RUN npm run build:prod
 # 使用官方nginx镜像作为基础镜像
 FROM nginx:alpine
 
-# 复制构建后的文件到nginx的html目录
+# 复制构建后的文件到nginx的html目
 COPY --from=0 /app/dist /usr/share/nginx/html
 
 # 暴露端口
