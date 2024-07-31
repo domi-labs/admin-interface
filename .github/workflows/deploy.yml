@@ -67,9 +67,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image
-        run: |
-          docker build -t aaa/vue-app:latest .
-          docker push aaa/vue-app:latest
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: aaa/my-vue-app:latest
 
   deploy:
     runs-on: ubuntu-latest
