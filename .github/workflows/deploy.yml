@@ -70,7 +70,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: aaa/my-vue-app:latest
+        tags: aaa/vue-app:latest
 
   deploy:
     runs-on: ubuntu-latest
