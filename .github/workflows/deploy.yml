@@ -18,9 +18,9 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-        docker build -t tgm.bet@outlook.com/admin-interface .
-        docker push tgm.bet@outlook.com/admin-interface
+        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        docker build -t admin-interface .
+        docker push admin-interface
 
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
@@ -31,12 +31,12 @@ jobs:
         port: ${{ secrets.SERVER_PORT }}
         script: |
           # 拉取最新的Docker镜像
-          docker pull tgm.bet@outlook.com/admin-interface
+          docker pull admin-interface
           # 停止旧的容器
           docker stop admin-interface
           # 删除旧的容器
           docker rm admin-interface
           # 删除旧的镜像
-          docker rmi tgm.bet@outlook.com/admin-interface
+          docker rmi admin-interface
           # 运行新的容器
-          docker run -d --name admin-interface -p 80:80 tgm.bet@outlook.com/admin-interface
+          docker run -d --name admin-interface -p 80:80 admin-interface
