@@ -13,18 +13,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Build Docker Image
-      run: |
-        docker build -t admin-interface .
-        docker save admin-interface -o ./admin-interface.tar
-        ls -la
+    # - name: Build Docker Image
+    #   run: |
+    #     docker build -t admin-interface .
+    #     docker save admin-interface -o ./admin-interface.tar
 
-    - name: Transfer Image Tarball to Server
+
+    - name: Copy to server
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
-        source: "/tmp/admin-interface.tar"
-        target: "/root/admin-interface.tar"
+        source: "./package.json"
+        target: "/root/package.json"
