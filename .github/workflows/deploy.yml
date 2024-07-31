@@ -1,0 +1,42 @@
+name: Deploy Admin Interface
+
+on:
+  push:
+    branches:
+      - main  # 主分支名可能因仓库而异
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build and Publish Docker Image
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        docker build -t tgm.bet@outlook.com/admin-interface .
+        docker push tgm.bet@outlook.com/admin-interface
+
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        port: ${{ secrets.SERVER_PORT }}
+        script: |
+          # 拉取最新的Docker镜像
+          docker pull tgm.bet@outlook.com/admin-interface
+          # 停止旧的容器
+          docker stop admin-interface
+          # 删除旧的容器
+          docker rm admin-interface
+          # 删除旧的镜像
+          docker rmi tgm.bet@outlook.com/admin-interface
+          # 运行新的容器
+          docker run -d --name admin-interface -p 80:80 tgm.bet@outlook.com/admin-interface
