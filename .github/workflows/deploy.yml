@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
         source: "./admin-interface.tar"
-        target: "~/"
+        target: "~/admin-interface.tar"
 
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
@@ -37,8 +37,14 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
         script: |
-          docker stop admin-interface || true
+          container_name="admin-interface"
+          container_id=$(docker ps -a --format '{{.Names}} {{.ID}}' | grep "^$container_name " | awk '{print $2}')
+          if [ -n "$container_id" ]; then
+              echo "Stopping container: $container_name"
+              docker stop admin-interface || true
+
           docker rm admin-interface || true
           docker rmi admin-interface || true
-          docker load -i ~/admin-interface.tar
+          docker load -i ~/admin-interface.tar/admin-interface.tar
           docker run -d --name admin-interface -p 80:80 admin-interface
+          rm -rf ~/admin-interface.tar
