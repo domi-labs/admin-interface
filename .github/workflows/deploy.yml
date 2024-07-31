@@ -1,4 +1,4 @@
-name: Deploy Admin Interface
+name: Deploy Vue App
 
 on:
   push:
@@ -13,15 +13,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Build and Publish Docker Image
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build Docker Image
       run: |
-        ls -la
-        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
         docker build -t admin-interface .
-        docker push admin-interface
 
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
@@ -31,13 +25,18 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
         script: |
-          # 拉取最新的Docker镜像
-          docker pull admin-interface
-          # 停止旧的容器
-          docker stop admin-interface
-          # 删除旧的容器
-          docker rm admin-interface
-          # 删除旧的镜像
-          docker rmi admin-interface
-          # 运行新的容器
+          # Stop and remove any existing container
+          docker stop admin-interface || true
+          docker rm admin-interface || true
+          # Remove any existing image
+          docker rmi admin-interface || true
+          # Load the Docker image from the tar file (if it exists)
+          if [ -f "/tmp/admin-interface.tar" ]; then
+            docker load -i /tmp/admin-interface.tar
+          fi
+          # Build the Docker image on the server (if it doesn't exist)
+          if ! docker images -q admin-interface > /dev/null; then
+            docker build -t admin-interface .
+          fi
+          # Run the new container
           docker run -d --name admin-interface -p 80:80 admin-interface
