@@ -68,8 +68,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/vue-app:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/vue-app:latest
+          docker build -t aaa/vue-app:latest .
+          docker push aaa/vue-app:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -79,10 +79,10 @@ jobs:
       - name: Deploy to Server
         run: |
           ssh user@your-server-ip << 'EOF'
-          docker pull ${{ secrets.DOCKER_USERNAME }}/vue-app:latest
+          docker pull aaa/vue-app:latest
           docker stop vue-app || true
           docker rm vue-app || true
-          docker run -d --name vue-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/vue-app:latest
+          docker run -d --name vue-app -p 80:80 aaa/vue-app:latest
           EOF
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
