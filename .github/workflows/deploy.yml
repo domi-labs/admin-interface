@@ -37,6 +37,7 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
         script: |
+          #!/bin/bash
           container_name="admin-interface"
           container_id=$(docker ps -a --format '{{.Names}} {{.ID}}' | grep "^$container_name " | awk '{print $2}')
           if [ -n "$container_id" ]; then
