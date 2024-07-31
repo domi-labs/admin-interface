@@ -26,8 +26,8 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
-        source: "./admin-interface.tar/"
-        target: "./~"
+        source: "./admin-interface.tar"
+        target: "/root/"
 
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
