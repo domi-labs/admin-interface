@@ -37,10 +37,25 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_PORT }}
         script: |
-          docker inspect --type container admin-interface > /dev/null 2>&1 && docker stop admin-interface || true
+          if docker inspect --type container admin-interface; then
+            echo "容器存在，正在停止容器: admin-interface"
+            docker stop admin-interface
+          fi
 
-          docker rm admin-interface || true
-          docker rmi admin-interface || true
-          docker load -i ~/admin-interface.tar/admin-interface.tar
-          docker run -d --name admin-interface -p 80:80 admin-interface
-          rm -rf ~/admin-interface.tar
+
+          if docker inspect --type container admin-interfacel; then
+            echo "容器存在，正在删除容器: admin-interface"
+            docker rm admin-interface
+          fi
+
+          if docker image inspect admin-interface; then
+            echo "镜像文件存在，正在删除镜像": admin-interface"
+            docker rmi admin-interface || true
+          fi
+          
+          if [ -f ~/admin-interface.tar/admin-interface.tar ]; then
+              docker load -i ~/admin-interface.tar/admin-interface.tar
+              docker run -d --name admin-interface -p 80:80 admin-interface
+              rm -rf ~/admin-interface.tar
+          fi
+          
