@@ -1,42 +1,88 @@
-name: Deploy Admin Interface
+# name: Deploy Admin Interface
+
+# on:
+#   push:
+#     branches:
+#       - main  # 主分支名可能因仓库而异
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v3
+
+#     - name: Build and Publish Docker Image
+#       env:
+#         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+#         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+#       run: |
+#         echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+#         docker build -t admin-interface .
+#         docker push admin-interface
+
+#     - name: Deploy to Server
+#       uses: appleboy/ssh-action@master
+#       with:
+#         host: ${{ secrets.SERVER_HOST }}
+#         username: ${{ secrets.SERVER_USERNAME }}
+#         password: ${{ secrets.SERVER_PASSWORD }}
+#         port: ${{ secrets.SERVER_PORT }}
+#         script: |
+#           # 拉取最新的Docker镜像
+#           docker pull admin-interface
+#           # 停止旧的容器
+#           docker stop admin-interface
+#           # 删除旧的容器
+#           docker rm admin-interface
+#           # 删除旧的镜像
+#           docker rmi admin-interface
+#           # 运行新的容器
+#           docker run -d --name admin-interface -p 80:80 admin-interface
+
+
+name: Deploy to Server
 
 on:
   push:
     branches:
-      - main  # 主分支名可能因仓库而异
+      - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Build and Publish Docker Image
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: |
-        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        docker build -t admin-interface .
-        docker push admin-interface
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-    - name: Deploy to Server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        password: ${{ secrets.SERVER_PASSWORD }}
-        port: ${{ secrets.SERVER_PORT }}
-        script: |
-          # 拉取最新的Docker镜像
-          docker pull admin-interface
-          # 停止旧的容器
-          docker stop admin-interface
-          # 删除旧的容器
-          docker rm admin-interface
-          # 删除旧的镜像
-          docker rmi admin-interface
-          # 运行新的容器
-          docker run -d --name admin-interface -p 80:80 admin-interface
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/vue-app:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/vue-app:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to Server
+        run: |
+          ssh user@your-server-ip << 'EOF'
+          docker pull ${{ secrets.DOCKER_USERNAME }}/vue-app:latest
+          docker stop vue-app || true
+          docker rm vue-app || true
+          docker run -d --name vue-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/vue-app:latest
+          EOF
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
