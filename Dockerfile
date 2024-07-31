@@ -40,7 +40,7 @@ RUN npm install
 COPY . .
 
 # 构建应用
-RUN npm run build
+RUN npm run build:prod
 
 # 使用官方nginx镜像作为基础镜像
 FROM nginx:alpine
